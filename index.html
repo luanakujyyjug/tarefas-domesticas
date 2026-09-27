@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarefas Domésticas</title>
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --paper: #f9f5ee;
+      --paper-2: #f2ead7;
+      --ink: #2a241f;
+      --green-1: #3e5a3b;
+      --green-2: #5c7d50;
+      --green-3: #dfe9d3;
+      --gold: #d7b06d;
+      --gold-light: #f7edd8;
+      --red: #c96a52;
+      --red-soft: #f5dfd7;
+      --line: rgba(69, 58, 46, 0.18);
+      --shadow: rgba(28, 25, 21, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.2), rgba(0,0,0,0.02)),
+        repeating-linear-gradient(
+          to bottom,
+          #f6f1e8 0px,
+          #f6f1e8 32px,
+          #ebe2d0 32px,
+          #ebe2d0 33px
+        );
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 14px 40px;
+    }
+
+    .container {
+      width: min(980px, 100%);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+
+    .header p {
+      margin: 10px 0 0;
+      font-size: 0.96rem;
+      color: rgba(42, 36, 31, 0.72);
+    }
+
+    .date-box {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--green-1);
+      margin: 12px 0 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.12);
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 18px var(--shadow);
+    }
+
+    .stat-card.monthly {
+      background: linear-gradient(135deg, var(--gold-light), rgba(255,255,255,0.05));
+      border-color: rgba(215, 176, 109, 0.6);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(42, 36, 31, 0.72);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--green-2);
+      margin: 0;
+    }
+
+    .monthly .stat-value {
+      color: var(--gold);
+    }
+
+    .stat-note {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: rgba(42, 36, 31, 0.7);
+    }
+
+    .add-task {
+      background: rgba(255,255,255,0.2);
+      border: 2px dashed var(--green-2);
+      border-radius: 14px;
+      padding: 12px 12px 14px;
+      margin-bottom: 18px;
+    }
+
+    .add-task-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .add-task-form input,
+    .add-task-form select,
+    .add-task-form button {
+      min-height: 46px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(73, 93, 64, 0.18);
+      font: inherit;
+    }
+
+    .add-task-form input {
+      flex: 1 1 220px;
+      padding: 0 12px;
+      background: rgba(255,255,255,0.8);
+      color: var(--ink);
+    }
+
+    .add-task-form select {
+      width: 140px;
+      padding: 0 10px;
+      background: rgba(255,255,255,0.8);
+      color: var(--ink);
+    }
+
+    .add-task-form button {
+      padding: 0 18px;
+      border: none;
+      background: linear-gradient(135deg, var(--green-2), var(--green-1));
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 18px rgba(84, 108, 77, 0.22);
+    }
+
+    .add-task-form button:hover {
+      transform: translateY(-2px);
+    }
+
+    .notebook {
+      position: relative;
+      background:
+        linear-gradient(to right, transparent 0 46px, rgba(120,104,82,0.08) 46px 47px, transparent 47px),
+        linear-gradient(to bottom, transparent 0 32px, rgba(120,104,82,0.08) 32px 33px, transparent 33px),
+        var(--paper);
+      border-radius: 18px;
+      box-shadow: 0 14px 32px var(--shadow);
+      padding: 20px 18px 18px;
+      overflow: hidden;
+    }
+
+    .notebook::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0 44px, rgba(120,104,82,0.04) 44px 45px, transparent 45px);
+      pointer-events: none;
+    }
+
+    .notebook-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .notebook-title {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 64px;
+      padding: 10px 12px 10px 0;
+      border-bottom: 1px solid var(--line);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-check {
+      width: 26px;
+      height: 26px;
+      border: 2px solid var(--green-1);
+      border-radius: 8px;
+      appearance: none;
+      background: white;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .task-check:checked {
+      background: var(--green-1);
+      border-color: var(--green-1);
+    }
+
+    .task-check:checked::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 3px;
+      width: 7px;
+      height: 13px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+
+    .task-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .task-name {
+      margin: 0;
+      font-size: clamp(0.96rem, 2vw, 1.1rem);
+      line-height: 1.35;
+      color: var(--ink);
+      word-break: break-word;
+      transition: all 0.2s ease;
+    }
+
+    .task-points {
+      background: var(--green-3);
+      color: var(--green-1);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .task-item.done .task-name {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .task-item.done .task-points {
+      opacity: 0.5;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      width: 38px;
+      height: 38px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.98);
+    }
+
+    .btn-done {
+      background: var(--green-3);
+      color: var(--green-1);
+    }
+
+    .btn-remove {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .summary {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: rgba(255,255,255,0.16);
+      border: 1.5px solid rgba(92, 125, 80, 0.26);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: var(--green-1);
+    }
+
+    .summary strong {
+      font-size: 0.95rem;
+    }
+
+    .progress-bar {
+      flex: 1;
+      max-width: 260px;
+      height: 12px;
+      background: rgba(92, 125, 80, 0.14);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(92, 125, 80, 0.18);
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green-2), var(--green-1));
+      transition: width 0.25s ease;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 10px 28px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .add-task-form {
+        flex-direction: column;
+      }
+
+      .add-task-form select,
+      .add-task-form input,
+      .add-task-form button {
+        width: 100%;
+      }
+
+      .task-item {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-right: 0;
+      }
+
+      .task-left {
+        width: 100%;
+      }
+
+      .task-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .summary {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .progress-bar {
+        max-width: none;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>📋 Tarefas Domésticas</h1>
+      <p>Sistema de pontuação e organização diária</p>
+    </header>
+
+    <div class="date-box" id="todayDate"></div>
+
+    <section class="stats" aria-label="Estatísticas">
+      <div class="stat-card">
+        <div class="stat-label">Pontos hoje</div>
+        <p class="stat-value" id="todayPoints">0</p>
+        <div class="stat-note">tarefas concluídas</div>
+      </div>
+
+      <div class="stat-card monthly">
+        <div class="stat-label">Total do mês</div>
+        <p class="stat-value" id="monthTotal">0</p>
+        <div class="stat-note" id="monthNote">Janeiro</div>
+      </div>
+    </section>
+
+    <section class="add-task" aria-label="Adicionar tarefa">
+      <form id="taskForm" class="add-task-form">
+        <input id="taskInput" type="text" placeholder="Nova tarefa..." maxlength="80" required />
+        <select id="pointsSelect" aria-label="Pontos da tarefa">
+          <option value="1">1 ponto</option>
+          <option value="2">2 pontos</option>
+          <option value="3">3 pontos</option>
+        </select>
+        <button type="submit">Adicionar</button>
+      </form>
+    </section>
+
+    <section class="notebook" aria-label="Lista de tarefas">
+      <div class="notebook-inner">
+        <h2 class="notebook-title">Lista do dia</h2>
+
+        <ul id="taskList" class="task-list">
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Lavar a louça</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Secar a louça</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Dobrar a roupa</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Passar vassoura na casa</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Lavar o banheiro</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="2">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Lavar o quintal</p>
+                <span class="task-points">2 pontos</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Recolher o lixo</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+
+          <li class="task-item" data-points="1">
+            <div class="task-left">
+              <input class="task-check" type="checkbox" />
+              <div class="task-content">
+                <p class="task-name">Recolher o cocô do pet</p>
+                <span class="task-points">1 ponto</span>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+              <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+            </div>
+          </li>
+        </ul>
+
+        <div class="summary">
+          <strong id="statusText">0/8 concluídas</strong>
+          <div class="progress-bar" aria-label="Progresso">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'tarefas_domesticas_state';
+    const TODAY_DATE_KEY = 'tarefas_domesticas_ultima_data';
+
+    function formatDate(date) {
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      return new Intl.DateTimeFormat('pt-BR', options).format(date);
+    }
+
+    function getMonthName(date) {
+      const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      return meses[date.getMonth()];
+    }
+
+    function getDefaultState() {
+      return [
+        { name: 'Lavar a louça', points: 1, done: false },
+        { name: 'Secar a louça', points: 1, done: false },
+        { name: 'Dobrar a roupa', points: 1, done: false },
+        { name: 'Passar vassoura na casa', points: 1, done: false },
+        { name: 'Lavar o banheiro', points: 1, done: false },
+        { name: 'Lavar o quintal', points: 2, done: false },
+        { name: 'Recolher o lixo', points: 1, done: false },
+        { name: 'Recolher o cocô do pet', points: 1, done: false }
+      ];
+    }
+
+    function loadState() {
+      let state = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!state || !Array.isArray(state)) {
+        state = getDefaultState();
+      }
+      return state;
+    }
+
+    function saveState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function resetIfNewDay() {
+      const hoje = new Date().toDateString();
+      const ultimaData = localStorage.getItem(TODAY_DATE_KEY);
+
+      if (ultimaData !== hoje) {
+        const state = loadState();
+        const hojeHistorico = JSON.parse(localStorage.getItem('tarefas_domesticas_historico') || '[]');
+
+        hojeHistorico.push({
+          data: ultimaData || hoje,
+          tarefas: state,
+          pontos: state.filter(t => t.done).reduce((sum, t) => sum + t.points, 0)
+        });
+
+        localStorage.setItem('tarefas_domesticas_historico', JSON.stringify(hojeHistorico));
+        localStorage.setItem(TODAY_DATE_KEY, hoje);
+
+        const novoEstado = getDefaultState();
+        saveState(novoEstado);
+      }
+    }
+
+    function renderTasks() {
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';
+
+      const state = loadState();
+
+      state.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.className = `task-item ${task.done ? 'done' : ''}`;
+        li.dataset.index = index;
+        li.dataset.points = task.points;
+
+        li.innerHTML = `
+          <div class="task-left">
+            <input class="task-check" type="checkbox" ${task.done ? 'checked' : ''} />
+            <div class="task-content">
+              <p class="task-name">${task.name}</p>
+              <span class="task-points">${task.points} ${task.points === 1 ? 'ponto' : 'pontos'}</span>
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="btn btn-done" aria-label="Concluir tarefa">✓</button>
+            <button class="btn btn-remove" aria-label="Remover tarefa">✕</button>
+          </div>
+        `;
+
+        taskList.appendChild(li);
+      });
+
+      bindTaskEvents();
+      updateSummary();
+    }
+
+    function bindTaskEvents() {
+      document.querySelectorAll('.task-item').forEach(item => {
+        const checkbox = item.querySelector('.task-check');
+        const doneBtn = item.querySelector('.btn-done');
+        const removeBtn = item.querySelector('.btn-remove');
+        const index = Number(item.dataset.index);
+
+        checkbox.addEventListener('change', () => {
+          const state = loadState();
+          state[index].done = checkbox.checked;
+          saveState(state);
+          renderTasks();
+        });
+
+        doneBtn.addEventListener('click', () => {
+          const state = loadState();
+          state[index].done = !state[index].done;
+          saveState(state);
+          renderTasks();
+        });
+
+        removeBtn.addEventListener('click', () => {
+          const state = loadState();
+          state.splice(index, 1);
+          saveState(state);
+          renderTasks();
+        });
+      });
+    }
+
+    function updateSummary() {
+      const state = loadState();
+      const doneCount = state.filter(t => t.done).length;
+      const totalCount = state.length || 1;
+      const totalPoints = state.filter(t => t.done).reduce((sum, t) => sum + Number(t.points), 0);
+      const monthTotal = getMonthTotal();
+
+      document.getElementById('todayPoints').textContent = totalPoints;
+      document.getElementById('statusText').textContent = `${doneCount}/${totalCount} concluídas`;
+      document.getElementById('progressFill').style.width = `${(doneCount / totalCount) * 100}%`;
+      document.getElementById('monthTotal').textContent = monthTotal;
+      document.getElementById('monthNote').textContent = getMonthName(new Date());
+    }
+
+    function getMonthTotal() {
+      const historico = JSON.parse(localStorage.getItem('tarefas_domesticas_historico') || '[]');
+      const state = loadState();
+      const atual = state.filter(t => t.done).reduce((sum, t) => sum + Number(t.points), 0);
+      const totalAntigo = historico.reduce((sum, dia) => sum + (Number(dia.pontos) || 0), 0);
+      return atual + totalAntigo;
+    }
+
+    function addTask(event) {
+      event.preventDefault();
+      const input = document.getElementById('taskInput');
+      const select = document.getElementById('pointsSelect');
+      const value = input.value.trim();
+      const points = Number(select.value);
+
+      if (!value) return;
+
+      const state = loadState();
+      state.push({ name: value, points, done: false });
+      saveState(state);
+      input.value = '';
+      renderTasks();
+    }
+
+    function init() {
+      if (!localStorage.getItem(TODAY_DATE_KEY)) {
+        localStorage.setItem(TODAY_DATE_KEY, new Date().toDateString());
+      }
+
+      resetIfNewDay();
+      document.getElementById('todayDate').textContent = formatDate(new Date());
+      document.getElementById('taskForm').addEventListener('submit', addTask);
+      renderTasks();
+    }
+
+    init();
+  </script>
+</body>
+</html>
